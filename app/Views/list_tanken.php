@@ -28,7 +28,7 @@ $car_list=$db->table('tbl_car')->select('car_id,car_noplate')->get()->getResultA
                     <?php  $today=date("Y-m-d"); 
                 
                     ?>
-                        <form  action=<?php echo site_url() . "/dashboard/view_days"; ?> method="get">
+                        <form  action=<?php echo site_url() . "/dashboard/view_tanken"; ?> method="get">
                             <div class="form-group row">
                             
                                 <div class="col-sm-3 mb-3 mb-sm-0">
@@ -132,7 +132,7 @@ $car_list=$db->table('tbl_car')->select('car_id,car_noplate')->get()->getResultA
         <!-- DataTales Example -->
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Driving Day Details</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Tanken Details</h6>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -140,14 +140,13 @@ $car_list=$db->table('tbl_car')->select('car_id,car_noplate')->get()->getResultA
                         <thead>
                             <tr>
                                 <th>Driver Name</th>
-                                <th>Station</th>
                                 <th>Date</th>
-                                <th>Start kilometer</th>
-                                <th>End kilometer</th>
-                                <th>car</th>
-                                <th>Start Fuel Level</th>
-                                <th>End Fuel Level</th>
-                                <th>Accident Status</th>
+                                <th>Kilometer</th>
+                                <th>Zipcode</th>
+                                <th>Fuel Amount</th>
+                                <th>Amount</th>
+                                <th>Oil Status</th>
+                                <th>Blue Tanked Status</th>
                                 <th>Edit</th>
                                 <th>Delete</th>
                             </tr>
@@ -155,14 +154,13 @@ $car_list=$db->table('tbl_car')->select('car_id,car_noplate')->get()->getResultA
                         <tfoot>
                             <tr>
                                 <th>Driver Name</th>
-                                <th>Station</th>
                                 <th>Date</th>
-                                <th>Start kilometer</th>
-                                <th>End kilometer</th>
-                                <th>car</th>
-                                <th>Start Fuel Level</th>
-                                <th>End Fuel Level</th>
-                                <th>Accident Status</th>
+                                <th>Kilometer</th>
+                                <th>Zipcode</th>
+                                <th>Fuel Amount</th>
+                                <th>Amount</th>
+                                <th>Oil Status</th>
+                                <th>Blue Tanked Status</th>
                                 <th>Edit</th>
                                 <th>Delete</th>
                             </tr>
@@ -174,46 +172,32 @@ $car_list=$db->table('tbl_car')->select('car_id,car_noplate')->get()->getResultA
 
                                     echo "<tr>";
                                     echo "<td>{$row['driver_name']}</td>";
-                                    echo "<td>{$row['station']}</td>";
                                     echo "<td>{$row['day_date']}</td>";
-                                    echo "<td>{$row['start_kilometer']}</td>";
-                                    // echo "<td>{$row['end_kilometer']}</td>";
-                                    if(isset($row['end_kilometer']) && !empty($row['end_kilometer']))
+                                    echo "<td>{$row['kilometer']}</td>";
+                                    echo "<td>{$row['zipcode']}</td>";
+                                    echo "<td>{$row['fuel_amount']}</td>";
+                                    echo "<td>{$row['amount']}</td>";
+                                   
+                                    if($row['oil_status'] == 1)
                                     {
-                                        echo "<td>{$row['end_kilometer']}</td>";
+                                        echo "<td>Oil filled</td>";
                                     }
-                                    else
+                                    else if($row['oil_status'] == 0)
                                     {
-                                        echo "<td>-</td>";
+                                        echo "<td>Did not fill oil</td>";
                                     }
-                                    echo "<td>{$row['car_noplate']}</td>";
-                                    echo "<td>{$row['start_fuel_level']}</td>";
-                                    if(isset($row['end_fuel_level']) && !empty($row['end_fuel_level']))
+
+                                    if($row['blue_tanked_status'] == 1)
                                     {
-                                        echo "<td>{$row['end_fuel_level']}</td>";
+                                        echo "<td>Blue tanked </td>";
                                     }
-                                    else
+                                    else if($row['blue_tanked_status'] == 0)
                                     {
-                                        echo "<td>-</td>";
+                                        echo "<td>No tanked</td>";
                                     }
-                                    if($row['accident_status'] == 0)
-                                    {
-                                        echo "<td>Accident happend!</td>";
-                                    }
-                                    else if($row['accident_status'] == 1)
-                                    {
-                                        echo "<td>Accident did not happend!</td>";
-                                    }
-                                    // echo "<td>Fuel</td>";
-                                    // if(count($fuel)!= 0){
-                                    //     echo "<td><a href='". site_url() ."/dashboard/fueldetails/{$row['day_id']}' >view</td>";
-                                    // }
-                                    // else
-                                    // {
-                                    //     echo "<td>-</td>";
-                                    // }
-                                    echo "<td><a href=" . site_url() . "/dashboard/editday/{$row['day_id']} class='btn btn-success'  ><i class='fas fa-edit'></i></a></td>";
-                                    echo "<td><a href='#' class='btn btn-danger deleteday' id={$row['day_id']} ><i class='fas fa-trash'></i></a></td>";
+
+                                    echo "<td><a href=" . site_url() . "/dashboard/edit_fuel/{$row['fuel_id']} class='btn btn-success'  ><i class='fas fa-edit'></i></a></td>";
+                                    echo "<td><a href='#' class='btn btn-danger deletefuel' id={$row['fuel_id']} ><i class='fas fa-trash'></i></a></td>";
                                     echo "</tr>";
                                 }
                             }

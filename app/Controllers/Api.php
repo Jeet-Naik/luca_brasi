@@ -71,6 +71,8 @@ class Api extends BaseController
      * @param
      * username : ##
      * password : ##
+     * @response
+     * driver_id
      */
     public function driver_login()
 	{  
@@ -102,7 +104,7 @@ class Api extends BaseController
 				'password' => md5($password),
 			);
 
-            $data=$this->db->table('users')->select('user_id')->where($condition)->get()->getRowArray();
+            $data=$this->db->table('tbl_user')->select('user_id')->where($condition)->get()->getRowArray();
 
             if(!empty($data))
             {
@@ -132,7 +134,8 @@ class Api extends BaseController
      * start_kilometer : ##
      * car_id : ##
      * start_fuel_level : ##
-     * 
+     * @response 
+     * day_id
      */
     public function start_day()
     {   
@@ -150,7 +153,7 @@ class Api extends BaseController
             $station_id         =   trim($this->request->getVar('station_id'));
             $driver_id          =   trim($this->request->getVar('driver_id'));
             $start_kilometer    =   trim($this->request->getVar('start_kilometer'));
-            $car_id               =   trim($this->request->getVar('car_id'));
+            $car_id              =   trim($this->request->getVar('car_id'));
             $start_fuel_level   =   trim($this->request->getVar('start_fuel_level'));
 
             if (isset($station_id) && empty($station_id)) {
@@ -180,7 +183,7 @@ class Api extends BaseController
             $timestamp = date('Y-m-d H:i:s');
             $data=array(
                 'user_id'           => $driver_id,
-                'destincation_id'   => $station_id,
+                'destination_id'   => $station_id,
                 'start_kilometer'   => $start_kilometer,
                 'car_id'              => $car_id,
                 'start_fuel_level'  => $start_fuel_level,
@@ -191,9 +194,11 @@ class Api extends BaseController
             try
             {
              $result=$this->db->table('driving_day')->insert($data);
+             $day_id= $this->db->insertID();
+             $response_data=array('day_id'=>$day_id);
             }
             catch(\Exception $e)
-            {
+            {   
               
                 $response['message']="Something went wrong!";
                 $this->sendResponse($response);
@@ -202,6 +207,7 @@ class Api extends BaseController
             {
                 $response['status']="success";
                 $response['message']="Day started successfully";
+                $response['data']=$response_data;
             }
             else
             {
@@ -229,35 +235,36 @@ class Api extends BaseController
             $response['message'] = 'Authentication Failed.';
             $this->sendResponse($response);
         }
-        $required_fields = array("driver_id", "day_id");
+        $required_fields = array("driver_id");
         $status = $this->verifyRequiredParams($required_fields);
 
         if($status)
         {
-            $day_id             =   trim($this->request->getVar('day_id'));
+            // $day_id             =   trim($this->request->getVar('day_id'));
             $driver_id          =   trim($this->request->getVar('driver_id'));
 
-            if (isset($day_id) && empty($day_id)) {
-				$response['message'] = "Please enter day id";
-				$this->sendResponse($response);
-			}
+            // if (isset($day_id) && empty($day_id)) {
+			// 	$response['message'] = "Please enter day id";
+			// 	$this->sendResponse($response);
+			// }
 
             if (isset($driver_id) && empty($driver_id)) {
 				$response['message'] = "Please enter driver id";
 				$this->sendResponse($response);
 			}
-
+            $today=date('Y-m-d');
             $condition=array(
-                'day_id'    => $day_id,
+                // 'day_id'    => $day_id,
+                'start_timestamp >='    => $today,
                 'user_id'   => $driver_id
             );
 
             $data=$this->db->table('driving_day')->select('start_timestamp')->where($condition)->get()->getRowArray();
-
+            $result=array('timestamp'=>$data['start_timestamp']);
             if($data){
                 $response['status']     = 'success';
                 $response['message']    = 'Timestamp fetched successfully';
-                $response['data']       = $data['start_timestamp'];
+                $response['data']       = $result ;
             }
             else{
                 $response['message'] = 'No data found';
@@ -276,17 +283,16 @@ class Api extends BaseController
      * @url : http://test-bh.potenzaglobalsolutions.com/lucabrasi/api/get-step-status
      * @param
      * driver_id : ##
-     * day_id : ##
      */
     public function get_step_status()
     {
+        // echo "test";die;
         $response = array("status" => "error");
         
-        $required_fields = array("driver_id", "day_id");
+        $required_fields = array("driver_id");
         $status = $this->verifyRequiredParams($required_fields);
         if($status)
         {
-            $day_id             =   trim($this->request->getVar('day_id'));
             $driver_id          =   trim($this->request->getVar('driver_id'));
 
             if (isset($day_id) && empty($day_id)) {
@@ -298,14 +304,15 @@ class Api extends BaseController
 				$response['message'] = "Please enter driver id";
 				$this->sendResponse($response);
 			}
-            
+            $today=date("Y-m-d");
             $condition=array(
-                'day_id'    => $day_id,
+                'start_timestamp >=' => $today,
                 'user_id'   => $driver_id
             );
 
-            $data=$this->db->table('driving_day')->select('day_step_status')->where($condition)->get()->getRowArray();
-
+            $data=$this->db->table('driving_day')->select('day_step_status,car_id')->where($condition)->get()->getRowArray();
+          
+            
             if($data)
             {
                 $response['status']="success";
@@ -315,7 +322,10 @@ class Api extends BaseController
             }
             else
             {
-                $response['message']="No stations found.";
+                $data=array('day_step_status'=>0,'car_id'=>0);
+                $response['status']="success";
+                $response['message']="day step status fetched successfully.";
+                $response['data']=$data;
             }
         }
         else
@@ -328,25 +338,24 @@ class Api extends BaseController
       /**
      * stop timer
      * @endpoint: stop-timer
-     * @url : http://test-bh.potenzaglobalsolutions.com/lucabrasi/api/stop-timer
+     * @url : http://test-bh.potenzaglobalsolutions.com/luca-brasi/api/stop-timer
      * @param
      * driver_id : ##
-     * day_id : ##
      */
     public function stop_timer()
     {   
         $response = array("status" => "error");
-        $required_fields = array("driver_id", "day_id");
+        $required_fields = array("driver_id");
         $status = $this->verifyRequiredParams($required_fields);
         if($status)
         {
-            $day_id             =   trim($this->request->getVar('day_id'));
+            // $day_id             =   trim($this->request->getVar('day_id'));
             $driver_id          =   trim($this->request->getVar('driver_id'));
 
-            if (isset($day_id) && empty($day_id)) {
-				$response['message'] = "Please enter day id";
-				$this->sendResponse($response);
-			}
+            // if (isset($day_id) && empty($day_id)) {
+			// 	$response['message'] = "Please enter day id";
+			// 	$this->sendResponse($response);
+			// }
 
             if (isset($driver_id) && empty($driver_id)) {
 				$response['message'] = "Please enter driver id";
@@ -355,11 +364,13 @@ class Api extends BaseController
 
             $timestamp = date('Y-m-d H:i:s');
 
+            $today=date('Y-m-d');
             $condition=array(
-                'day_id'    => $day_id,
+                'start_timestamp >='    => $today,
                 'user_id'   => $driver_id,
                 
             );
+
             $data=array(
                 'end_timestamp'     =>  $timestamp,
                 'day_step_status'   =>  2
@@ -367,21 +378,23 @@ class Api extends BaseController
             
             
             $res=$this->db->table('driving_day')->set($data)->where($condition)->update();
-            
-            if($res)
+            $rows_affected= $this->db->affectedRows();
+            echo $rows_affected;
+            // echo $th$rows_affectedis->db->getLastQuery();
+            if($rows_affected != 0)
             {
                 $response['status']="success";
-                $response['message']="status updated successfully.";
+                $response['message']="Timer stopped successfully";
                 $this->sendResponse($response);
             }
             else
             {
-                $response['message']="Something went wrong.";
+                $response['message']="Something went wrong";
             }
         }
         else
         {
-            $response['message']="One or more fields required.";
+            $response['message']="One or more fields required";
         }
         $this->sendResponse($response);
         
@@ -390,7 +403,7 @@ class Api extends BaseController
     /**
      * finish day
      * @endpoint: finish-day
-     * @url : http://test-bh.potenzaglobalsolutions.com/lucabrasi/api/finish-day
+     * @url : http://test-bh.potenzaglobalsolutions.com/luca-brasi/api/finish-day
      * @param
      * driver_id : ##
      * day_id : ##
@@ -401,20 +414,20 @@ class Api extends BaseController
     public function finish_day()
     {   
         $response = array("status" => "error");
-        $required_fields = array("driver_id", "day_id","accident_status","end_kilometer","end_fuel_level");
+        $required_fields = array("driver_id","accident_status","end_kilometer","end_fuel_level");
         $status = $this->verifyRequiredParams($required_fields);
         if($status)
         {
-            $day_id             =   trim($this->request->getVar('day_id'));
+            // $day_id             =   trim($this->request->getVar('day_id'));
             $driver_id          =   trim($this->request->getVar('driver_id'));
             $accident_status    =   trim($this->request->getVar('accident_status'));
             $end_kilometer      =   trim($this->request->getVar('end_kilometer'));
             $end_fuel_level     =   trim($this->request->getVar('end_fuel_level'));
 
-            if (isset($day_id) && empty($day_id)) {
-				$response['message'] = "Please enter day id";
-				$this->sendResponse($response);
-			}
+            // if (isset($day_id) && empty($day_id)) {
+			// 	$response['message'] = "Please enter day id";
+			// 	$this->sendResponse($response);
+			// }
 
             if (isset($driver_id) && empty($driver_id)) {
 				$response['message'] = "Please enter driver id";
@@ -443,27 +456,29 @@ class Api extends BaseController
                 'day_step_status'   => 3,
                 
             );
+            $today=date('Y-m-d');
             $condition=array(
-                'day_id' => $day_id,
+                'start_timestamp >=' => $today,
                 'user_id' => $driver_id,
             );
 
             $data=$this->db->table('driving_day')->set($data)->where($condition)->update();
-
-            if($data)
+            $rows_affected= $this->db->affectedRows();
+           echo $rows_affected;die;
+            if($rows_affected !=0)
             {
                 $response['status']="success";
-                $response['message']="day ended successfully.";
+                $response['message']="day ended successfully";
                 $this->sendResponse($response);
             }
             else
             {
-                $response['message']="Something went wrong.";
+                $response['message']="Something went wrong";
             }
         }
         else
         {
-            $response['message']="One or more fields required.";
+            $response['message']="One or more fields required";
         }
         $this->sendResponse($response);
     }
@@ -475,16 +490,18 @@ class Api extends BaseController
      * @param
      * day_id : ##
      * message : ##
+     * driver_id : ##
      */
     public function send_message()
     {   
         $response = array("status" => "error");
-        $required_fields = array( "day_id","message");
+        $required_fields = array( "day_id","driver_id","message");
         $status = $this->verifyRequiredParams($required_fields);
         if($status)
         {
             $day_id             =   trim($this->request->getVar('day_id'));
             $message            =   trim($this->request->getVar('message'));
+            $driver_id          =   trim($this->request->getVar('driver_id'));
 
             if (isset($day_id) && empty($day_id)) {
 				$response['message'] = "Please enter end day id";
@@ -496,9 +513,16 @@ class Api extends BaseController
 				$this->sendResponse($response);
 			}
 
+            
+            if (isset($driver_id) && empty($driver_id)) {
+				$response['message'] = "Please enter end driver id";
+				$this->sendResponse($response);
+			}
+
             $data=array(
                 'message'   =>   $message,
-                'day_id'    =>   $day_id
+                'day_id'    =>   $day_id,
+                'user_id'   =>   $driver_id
             );
 
             $res=$this->db->table('message')->insert($data);
@@ -720,4 +744,60 @@ class Api extends BaseController
 		}
     }
 
+    /**
+     * get step status
+     * @endpoint: get-status
+     * @url : http://test-bh.potenzaglobalsolutions.com/lucabrasi/api/get-status
+     * @param
+     * driver_id : ##
+     * date : YYYY-mm-dd
+     */
+    public function get_status()
+    {
+        $response = array("status" => "error");
+        
+        $required_fields = array("driver_id", "date");
+        $status = $this->verifyRequiredParams($required_fields);
+        if($status)
+        {
+            $driver_id             =   trim($this->request->getVar('driver_id'));
+            $date          =   trim($this->request->getVar('date'));
+
+            if (isset($driver_id) && empty($driver_id)) {
+				$response['message'] = "Please enter day id";
+				$this->sendResponse($response);
+			}
+
+            if (isset($date) && empty($date)) {
+				$response['message'] = "Please enter date";
+				$this->sendResponse($response);
+			}
+            $today=date("Y-m-d");
+            $condition=array(
+                'user_id'    => $driver_id,
+                'start_timestamp >='   => $today
+            );
+            // print_r($condition);die;
+
+            $data=$this->db->table('driving_day')->select('car_id')->where($condition)->get()->getRowArray();
+            // echo $this->db->getLastQuery();die;
+            if($data)
+            {
+                $response['status']="success";
+                $response['message']="car id fetched successfully.";
+                $response['data']=$data;
+                $this->sendResponse($response);
+            }
+            else
+            {
+                $response['message']="Day not started yet.";
+            }
+        }
+        else
+        {
+            $response['message']="One or more fields required.";
+        }
+        $this->sendResponse($response);
+    }
+//-------------------------------------------------------------------------------------------------------------
 }

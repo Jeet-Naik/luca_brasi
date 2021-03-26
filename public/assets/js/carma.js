@@ -209,6 +209,68 @@ $(document).ready(function () {
 
   });
 
+  //delete fuel
+  $(".deletefuel").click(function (e) {
+    e.preventDefault();
+    var id = $(this).attr('id');
+
+    swal({
+
+      title: "Are you sure?",
+
+      text: "Once deleted, you will not be able to recover this tanken details!",
+
+      icon: "warning",
+
+      buttons: true,
+
+      dangerMode: true,
+
+    })
+
+      .then((willDelete) => {
+
+        if (willDelete) {
+
+          $.ajax(
+
+            {
+
+              type: "POST",
+
+              url: carma.config.deletefuel,
+
+              data: { "id": id },
+
+              success: function (result) {
+
+                if (result) {
+                  window.location.reload(true);
+
+                  swal("Tanken details has been deleted!", {
+
+                    icon: "success",
+
+                  });
+
+                }
+
+              }
+
+            }
+
+          );
+
+        } else {
+
+          swal("Your data is safe!");
+
+        }
+
+      });
+
+  });
+
   $("#btnadddamageattribue").click(function () {
 
     var damage = $('#damageattribute').val();

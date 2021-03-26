@@ -56,6 +56,8 @@ $routes->add('/api/add-fuel', 'Api::add_fuel');
 
 $routes->add('/api/get-cars', 'Api::get_cars');
 
+$routes->add('/api/get-status', 'Api::get_status');
+
 /*
  * --------------------------------------------------------------------
  * Additional Routing

@@ -498,44 +498,51 @@ class Dashboard extends BaseController
     {
         $filter_start_date=$this->request->getVar('start_date');
         $filter_end_date=$this->request->getVar('end_date');
-        if(!isset($filter_start_date) ) 
+        $car_id=$this->request->getVar('sel_car');
+        $user_id=$this->request->getVar('sel_driver');
+
+        //filter dates
+        if(!isset($filter_start_date) && !isset($filter_end_date)) 
         {
-            echo "condition1";
+            // echo "condition1";
             $today=date("Y-m-d");
             $condition=array(
                 'start_timestamp >='=>$today
             );
         }
+        elseif(isset($filter_end_date) && isset($filter_start_date) )
+        {
+            // echo "condition2";
+            $date1 = str_replace('-', '/', $filter_end_date);
+            $tomorrow = date('Y-m-d',strtotime($date1 . "+1 days"));
+            $condition=array(
+                'start_timestamp >=' => $filter_start_date,
+                'start_timestamp <=' => $tomorrow
+            );
+        }
         elseif(isset($filter_start_date))
         {
-           echo "condition2";
+        //    echo "condition3";
             $condition=array(
                 'start_timestamp >=' => $filter_start_date
             );
         }
-        elseif(isset($filter_start_date) && isset($filter_end_date))
+
+        //filter car and user
+        if($car_id != 'all' && isset($car_id))
         {
-            echo "condition3";
-            $condition=array(
-                'start_timestamp >=' => $filter_start_date,
-                'start_timestamp <=' => $filter_end_date
-            );
+            $condition['car_id']=$car_id;
         }
-        elseif(isset($filter_start_date) && !isset($filter_end_date))
+        if($user_id != 'all' && isset($user_id))
         {
-            echo "condition4";
-            $today=date("Y-m-d");
-            $condition=array(
-                'start_timestamp >=' => $filter_start_date,
-                'start_timestamp <=' =>  $today
-            );
+            $condition['user_id']=$user_id;
         }
-        $data['days'] = $this->drivingmodel->select()->where($condition)->get()->getResultArray();
-        echo $this->db->getLastQuery();
+
         // echo "<pre>";
-        // print_r($data);
+        // print_r($condition);die;
         // echo "</pre>";
-        // die;
+        $data['days'] = $this->drivingmodel->select()->where($condition)->get()->getResultArray();
+
         $data['db'] = $this->db;
         foreach ($data['days'] as $key => $day) {
             //driver name
@@ -558,9 +565,13 @@ class Dashboard extends BaseController
             $date = $day['start_timestamp'];
             $newDate = date("d-m-Y", strtotime($date));
             $data['days'][$key]['day_date'] = $newDate;
+
         }
 
 
+        // echo "<pre>";
+        // print_r($data);
+        // echo "</pre>";die;
         $this->header();
 
         echo view('list_days', $data);
@@ -629,6 +640,9 @@ class Dashboard extends BaseController
         $this->footer();
     }
 
+    /**
+     * edit driving day details  data
+     */
     public function updateday()
     {
         helper(['form', 'url']);
@@ -724,5 +738,265 @@ class Dashboard extends BaseController
         }
     }
 
+    /**
+     * View Tanken
+     */
+    public function view_tanken()
+    {
+        $filter_start_date=$this->request->getVar('start_date');
+        $filter_end_date=$this->request->getVar('end_date');
+        $car_id=$this->request->getVar('sel_car');
+        $user_id=$this->request->getVar('sel_driver');
+
+        //filter dates
+        if(!isset($filter_start_date) && !isset($filter_end_date)) 
+        {
+            // echo "condition1";
+            $today=date("Y-m-d");
+            $condition=array(
+                'fuel.created >='=>$today
+            );
+        }
+        elseif(isset($filter_end_date) && isset($filter_start_date) )
+        {
+            // echo "condition2";
+            $date1 = str_replace('-', '/', $filter_end_date);
+            $tomorrow = date('Y-m-d',strtotime($date1 . "+1 days"));
+            $condition=array(
+                'fuel.created>=' => $filter_start_date,
+                'fuel.created <=' => $tomorrow
+            );
+        }
+        elseif(isset($filter_start_date))
+        {
+        //    echo "condition3";
+            $condition=array(
+                'fuel.created >=' => $filter_start_date
+            );
+        }
+
+        //filter car and user
+        if($car_id != 'all' && isset($car_id))
+        {
+            $condition['fuel.car_id']=$car_id;
+        }
+        if($user_id != 'all' && isset($user_id))
+        {
+            $condition['fuel.user_id']=$user_id;
+        }
+
+            $data['days'] = $this->fuelmodel->select(
+                'fuel.*,
+
+                '
+            )
+            ->where($condition)
+            ->get()->getResultArray();
+
+        
+          
+        // echo "<pre>";
+        // print_r($data['days']);
+        // echo "</pre>";die;
+
+        $data['db'] = $this->db;
+
+        foreach ($data['days'] as $key => $day) {
+            //driver name
+            $data_user = $this->usermodel->select('first_name,last_name')->where('user_id', $day['user_id'])->get()->getRowArray();
+            $name = $data_user['first_name'] . " " . $data_user['last_name'];
+            $data['days'][$key]['driver_name'] = $name;    
+
+            //day
+            $date = $day['created'];
+            $newDate = date("d-m-Y", strtotime($date));
+            $data['days'][$key]['day_date'] = $newDate;
+
+            $data['days'][$key]['amount'] = $data['days'][$key]['amount']."€";
+         
+
+        }
+
+        $this->header();
+
+        echo view('list_tanken', $data);
+
+        $this->footer();
+    }
+
+    /** 
+    * edit dfuel details 
+    */
+   public function edit_fuel($fuel_id)
+   {
+       $data['fuel_details'] = $this->fuelmodel
+       ->select(
+        'fuel.*,
+        driving_day.start_timestamp
+        '
+        )
+       ->where('fuel_id', $fuel_id)
+       ->join('driving_day','driving_day.day_id=fuel.day_id')
+       ->get()->getResultArray();
+
+ 
+
+       foreach ($data['fuel_details'] as $key => $day) {
+
+           //driver name
+           $data_user = $this->usermodel->select('first_name,last_name')->where('user_id', $day['user_id'])->get()->getRowArray();
+           $name = $data_user['first_name'] . " " . $data_user['last_name'];
+           $data['fuel_details'][$key]['driver_name'] = $name;
+
+           //day
+           $date = $day['start_timestamp'];
+           $newDate = date("d-m-Y", strtotime($date));
+           $data['fuel_details'][$key]['day_date'] = $newDate;
+       }
+ 
+
+       $data['db'] = $this->db;
+
+       $this->header();
+
+       echo view('editfuel', $data);
+
+       $this->footer();
+   }
+
+    /**
+     * edit tanken  data
+     */
+    public function updatefuel()
+    {
+        helper(['form', 'url']);
+        if ($this->request->getPost() != "") {
+            $valudation = array(
+                'txttkm' => array(
+                    "label" => "Start kilometer",
+                    "rules" => 'required|numeric'
+                ),
+                'zipcode' => array(
+                    "label" => "End Kilometer",
+                    "rules" => 'required|alpha_numeric'
+                ),
+                'fuelamt' => array(
+                    "label" => "Start Fuel",
+                    "rules" => 'required|numeric'
+                ),
+                'amount' => array(
+                    "label" => "End Fuel",
+                    "rules" => 'required|numeric'
+                ),
+            );
+            $input = $this->validate($valudation);
+
+            $id = $this->request->getVar('id');
+
+           
+            if (!$input) {
+                
+                $this->header();
+          
+                $data['fuel_details'] = $this->fuelmodel
+                ->select(
+                 'fuel.*,
+                 driving_day.start_timestamp
+                 '
+                 )
+                ->where('fuel_id', $id)
+             
+                ->join('driving_day','driving_day.day_id=fuel.day_id')
+                ->get()->getResultArray();
+         
+                foreach ($data['fuel_details'] as $key => $day) {
+         
+                    //driver name
+                    $data_user = $this->usermodel->select('first_name,last_name')->where('user_id', $day['user_id'])->get()->getRowArray();
+                    $name = $data_user['first_name'] . " " . $data_user['last_name'];
+                    $data['fuel_details'][$key]['driver_name'] = $name;
+         
+                    //day
+                    $date = $day['start_timestamp'];
+                    $newDate = date("d-m-Y", strtotime($date));
+                    $data['fuel_details'][$key]['day_date'] = $newDate;
+                }
+
+                $data['db'] = $this->db;
+                $data['validation'] = $this->validator;
+                echo view(
+                    'editfuel',
+                    $data
+                );
+
+                $this->footer();
+                die;
+            }
+            //oil status
+            $oil_status="";
+            if(empty($this->request->getPost('oil_status')))
+            {
+                $oil_status=0;
+            }
+            else{
+                $oil_status=1;
+            }
+
+            //blue tanked status
+            $blue_tanked_status="";
+            if(empty($this->request->getPost('blue_tanked_status')))
+            {
+                $blue_tanked_status=0;
+            }
+            else{
+                $blue_tanked_status=1;
+            }
+
+
+            $data = array(
+                'kilometer'    =>$this->request->getPost('txttkm'),
+
+                'zipcode' => $this->request->getPost('zipcode'),
+
+                'fuel_amount' => $this->request->getPost('fuelamt'),
+
+                'amount' => $this->request->getPost('amount'),
+
+                'oil_status' =>  $oil_status,
+
+                'blue_tanked_status' =>  $blue_tanked_status,
+            );
+            $res=$this->fuelmodel->set($data)->where('fuel_id',$id)->update();
+
+            if($res)
+            {
+                $this->session->set("success_alert", "<script>swal('Tanken Details Updated Successfully!', {icon: 'success',});</script>");
+                return redirect()->to(base_url() . "/dashboard/edit_fuel/{$id}");
+            }
+            else
+            {
+                $this->session->set("success_alert", "<script>swal('Error: something went wrong!', {icon: 'error',});</script>");
+                return redirect()->to(base_url() . "/dashboard/edit_fuel/{$id}");
+            }
+
+        }
+    }
+
+     /**
+     * Delete fuel
+     */
+    public function delete_fuel()
+    {
+        if ($this->request->getPost('id')) {
+            $delete = array(
+                'fuel_id' => $this->request->getPost('id')
+            );
+            if ($this->fuelmodel->where($delete)->delete()) {
+                echo true;
+            } else {
+                echo false;
+            }
+        }
+    }
     //========================================================================================================
 }
