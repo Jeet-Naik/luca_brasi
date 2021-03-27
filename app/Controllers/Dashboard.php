@@ -73,7 +73,8 @@ class Dashboard extends BaseController
     public function listdriver()
     {
         $credentials = array(
-            "type_id" => 0
+            "type_id" => 0,
+            "account_status"=>1
         );
 
         $driver_lists['drivers'] = $this->usermodel->where($credentials)->findall();
@@ -161,15 +162,15 @@ class Dashboard extends BaseController
 
         if ($this->request->getPost('driverid')) {
 
-            $delete_driver = array(
-
+            $condition=array(
                 'user_id' => $this->request->getPost('driverid'),
-
                 'type_id' => 0
-
             );
 
-            if ($this->usermodel->where($delete_driver)->delete()) {
+        //  echo $this->request->getPost('driverid');die;
+            $res=$this->usermodel->where($condition)->set('account_status',0)->update();
+            // $res=$this->usermodel->update(array('account_status'=>0),$condition);
+            if ( $res ) {
 
                 echo true;
             } else {
@@ -504,8 +505,8 @@ class Dashboard extends BaseController
         //filter dates
         if(!isset($filter_start_date) && !isset($filter_end_date)) 
         {
-            // echo "condition1";
             $today=date("Y-m-d");
+            ECHO $today;
             $condition=array(
                 'start_timestamp >='=>$today
             );
@@ -832,11 +833,10 @@ class Dashboard extends BaseController
        $data['fuel_details'] = $this->fuelmodel
        ->select(
         'fuel.*,
-        driving_day.start_timestamp
         '
         )
        ->where('fuel_id', $fuel_id)
-       ->join('driving_day','driving_day.day_id=fuel.day_id')
+    //    ->join('driving_day','driving_day.day_id=fuel.day_id')
        ->get()->getResultArray();
 
  
@@ -849,7 +849,7 @@ class Dashboard extends BaseController
            $data['fuel_details'][$key]['driver_name'] = $name;
 
            //day
-           $date = $day['start_timestamp'];
+           $date = $day['created'];
            $newDate = date("d-m-Y", strtotime($date));
            $data['fuel_details'][$key]['day_date'] = $newDate;
        }

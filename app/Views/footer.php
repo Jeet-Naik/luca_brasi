@@ -191,8 +191,9 @@
  <script>
    var carma = {
 
-     config: {
-
+     config: 
+     {
+       
        adddriver: "<?php echo base_url("/index.php/dashboard/adddriver"); ?>",
 
        deletedriver: "<?php echo base_url("/index.php/dashboard/deletedriver"); ?>",
@@ -210,10 +211,15 @@
        usernameexists: "<?php echo base_url("/index.php/dashboard/usernameexists"); ?>",
 
        carexists: "<?php echo base_url("/index.php/dashboard/carexists"); ?>",
+
        update_email: "<?php echo base_url("/index.php/dashboard/update_email"); ?>",
+
        deletecarmngr: "<?php echo base_url("/index.php/dashboard/deletecarmngr"); ?>",
+
        deleteday: "<?php echo base_url("/index.php/dashboard/delete_driving_day"); ?>",
+
        deletefuel: "<?php echo base_url("/index.php/dashboard/delete_fuel"); ?>",
+
      }
    }
  </script>

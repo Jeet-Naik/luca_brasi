@@ -21,6 +21,7 @@ use App\Models\DrivingDayModel;
 use App\Models\StationModel;
 use App\Models\FuelModel;
 
+date_default_timezone_set('Asia/Kolkata');
 
 class BaseController extends Controller
 {
@@ -58,6 +59,8 @@ class BaseController extends Controller
 		$this->stationmodel= new StationModel();
 		$this->fuelmodel= new FuelModel();
 		$this->validation = \Config\Services::validation();
+
+		date_default_timezone_set('Asia/Kolkata');
 	}
 
 }
