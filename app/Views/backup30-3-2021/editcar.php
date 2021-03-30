@@ -46,8 +46,7 @@ if (isset($car_details)) {
           <!-- Card Body -->
 
           <div class="card-body">
-          <?php $validation = \Config\Services::validation(); ?> 
-                    <?= $validation->listErrors() ?>
+
             <form class="driver" method="post" action=<?php echo site_url() . "/dashboard/updatecar"; ?>>
 
               <input type="hidden" name="hiddencarid" value=<?php echo $car_details[0]['car_id']; ?>>

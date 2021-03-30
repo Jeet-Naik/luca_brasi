@@ -50,11 +50,11 @@ if (isset($day_details)) {
                             <div class="form-group row">
                                 <div class="col-sm-4">
                                     <label for="txtstartfuel">Start Fuel Level</label>
-                                    <input type="number" class="form-control form-control-day" placeholder="Start Fuel Level" name="txtstartfuel" id="txtstartfuel" value=<?php echo $day_details[0]['start_fuel_level']; ?> title="Start Fuel Level" required />
+                                    <input type="number" class="form-control form-control-day" placeholder="Start Fuel Level" name="txtstartfuel" id="txtstartfuel" value=<?php echo $day_details[0]['start_fuel_level']; ?> title="Start Fuel Lever" required />
                                 </div>
                                 <div class="col-sm-4">
                                     <label for="txtendfuel">End Fuel Level</label>
-                                    <input type="number" class="form-control form-control-day" placeholder="End Fuel Level" name="txtendfuel" id="txtendfuel" value=<?php echo $day_details[0]['end_fuel_level']; ?> title="End Fuel Level"  required/>
+                                    <input type="number" class="form-control form-control-day" placeholder="End Fuel Lever" name="txtendfuel" id="txtendfuel" value=<?php echo $day_details[0]['end_fuel_level']; ?> title="End Fuel Lever"  required/>
                                 </div>
                                 <div class="col-sm-4">
                                     <label for="accident_status">Accident Status</label><br/>

@@ -23,8 +23,7 @@ if ($driver_details !== "") {
           <!-- Card Body -->
 
           <div class="card-body">
-          <?php $validation = \Config\Services::validation(); ?> 
-                    <?= $validation->listErrors() ?>
+
             <form class="driver" method="post" action="<?php echo site_url() ?>/dashboard/editdetails">
 
               <div class="form-group row">
@@ -65,22 +64,6 @@ if ($driver_details !== "") {
               </div>
               <div class="form-group row">
 
-              <div class="col-sm-6 mb-3 mb-sm-0">
-
-                <input type="password" class="form-control form-control-user" id="password" name="txtpassword" placeholder="Password"  pattern=".{8,}" title="Minimum 8 letters are required" >
-
-              </div>
-
-              <div class="col-sm-6">
-
-                <input type="password" class="form-control form-control-user" id="repeatpassword"  name="txtrepeatpassword" placeholder="Repeat Password" >
-
-              </div>
-
-              </div>
-
-              <div class="form-group row">
-
                 <div class="col-sm-4 mb-3 mb-sm-0 ">
 
                   <div class="form-check">
@@ -97,7 +80,7 @@ if ($driver_details !== "") {
                                                                       echo "hidden";
                                                                     } ?>>
 
-                  <input type="date" class="form-control form-control-user" id="dtexpdate" name="dtexpdate" placeholder="Enter Expiry Date." value="<?php echo $driver_details[0]['license_expiry_date'] ?>">
+                  <input type="date" class="form-control form-control-user" id="dtexpdate" name="dtexpdate" placeholder="Enter Expiry Date." value="<?php echo $driver_details[0]['license_expiry_date'] ?>" required>
 
                 </div>
                 <!-- <div class="col-sm-4 mb-3 mb-sm-0">
@@ -111,8 +94,22 @@ if ($driver_details !== "") {
               <input type="hidden" name="edit_id" value=<?php echo $driver_details[0]['user_id']; ?>>
 
               <input type="hidden" name="hiddenpassword" value=<?php echo $driver_details[0]['password'] ?>>
-              
+              <!-- 
+                <div class="form-group row">
 
+                  <div class="col-sm-6 mb-3 mb-sm-0">
+
+                    <input type="password" class="form-control form-control-user" id="password" name="txtpassword" placeholder="Password"  pattern=".{8,}" title="Minimum 8 letters are required" >
+
+                  </div>
+
+                  <div class="col-sm-6">
+
+                    <input type="password" class="form-control form-control-user" id="repeatpassword"  name="txtrepeatpassword" placeholder="Repeat Password" >
+
+                  </div>
+
+                </div> -->
 
               <input type="submit" class="btn btn-primary btn-user btn-block" id="btneditdriver" value="Update Driver" name="btneditdriver" />
 

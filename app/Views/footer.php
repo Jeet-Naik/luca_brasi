@@ -172,10 +172,6 @@
 
          </div>
 
-
-
-
-
        </div>
 
      </div>
@@ -219,6 +215,10 @@
        deleteday: "<?php echo base_url("/index.php/dashboard/delete_driving_day"); ?>",
 
        deletefuel: "<?php echo base_url("/index.php/dashboard/delete_fuel"); ?>",
+
+       addstation: "<?php echo base_url("/index.php/dashboard/add_station"); ?>",
+
+       deletestation: "<?php echo base_url("/index.php/dashboard/delete_station"); ?>",
 
      }
    }

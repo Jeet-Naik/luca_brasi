@@ -347,4 +347,77 @@ $(document).ready(function () {
   //   );
   //   }
   // });
+
+
+  //Add station
+  $("#btnaddstation").click(function (e) {
+    e.preventDefault();
+    var name = $('#txtstation').val();
+    if (name == "") {
+      swal("Please Enter Station!", {
+        icon: "error",
+      });
+    }
+    var letters = /^[A-Za-z]+$/;
+    if(!name.match(letters)){
+      alert('Please enter alphabets only');
+    }
+    else {
+      $.ajax(
+        {
+          type: "POST",
+          url: carma.config.addstation,
+          data: { "name": name },
+          success: function (result) {
+            if (result) {
+              swal(" New Station has been Added!", {
+                icon: "success",
+                
+              });
+              setTimeout(location.reload.bind(location), 1000);
+            }
+            else {
+              swal(" Something went wrong!", {
+                icon: "error",
+              });
+            }
+          }
+        }
+      );
+    }
+  });
+
+  //Delete Station
+  $(".delete_station").click(function () {
+    var id = $(this).attr('id');
+    swal({
+      title: "Are you sure?",
+      text: "Once deleted, you will not be able to recover this station details!",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true,
+    })
+      .then((willDelete) => {
+        if (willDelete) {
+          $.ajax(
+            {
+              type: "POST",
+              url: carma.config.deletestation,
+              data: { "id": id },
+              success: function (result) {
+                if (result) {
+                  window.location.reload(true);
+                  swal(" Station has been deleted!", {
+                    icon: "success",
+                  });
+                }
+              }
+            }
+          );
+        } else {
+          swal("Your driver is safe!");
+        }
+      });
+  });
+  //-------------------------------------------------------------------
 });

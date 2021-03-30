@@ -16,10 +16,13 @@ if (isset($admin_details)) {
         <!-- Divider -->
         <hr class="sidebar-divider my-0">
         <!-- Nav Item - Dashboard -->
+        <div class="sidebar-heading">
+          Station management
+        </div>
         <li class="nav-item active">
           <a class="nav-link" href="<?php echo base_url(); ?>/dashboard">
-            <i class="fas fa-fw fa-tachometer-alt"></i>
-            <span>Dashboard</span></a>
+            <i class="fas fa-home"></i>
+            <span>Stations</span></a>
         </li>
         <!-- Divider -->
         <hr class="sidebar-divider">

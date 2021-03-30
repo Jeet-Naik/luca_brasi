@@ -35,8 +35,7 @@
          <!-- Card Body -->
 
          <div class="card-body">
-         <?php $validation = \Config\Services::validation(); ?> 
-                    <?= $validation->listErrors() ?>
+
            <form class="driver" method="post" action=<?php echo base_url() . "/dashboard/addcar"; ?>>
 
              <div class="form-group row">

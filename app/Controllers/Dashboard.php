@@ -55,8 +55,9 @@ class Dashboard extends BaseController
     public function index()
     {
 
+        $data['stations']=$this->stationmodel->select('destination_id,name')->get()->getResultArray();
         $this->header();
-        echo view('dashboard_new');
+        echo view('dashboard_new',$data);
         $this->footer();
     }
 
@@ -104,25 +105,18 @@ class Dashboard extends BaseController
         helper(['form', 'url']);
         if ($this->request->getPost() != "") {
             $rules = [
-                "txtfirstname" => ['label' => 'First Name', "rules" => "required"],
-                "txtlastname" => ['label' => 'Make', "rules" => "required"],
-                "txtemail" => ['label' => 'Email id', "rules" => "required|is_unique[tbl_user.username]"],
-                "txtpassword" => ['label' => 'Password', "rules" => "required"],
+                "txtfirstname"      => ['label' => 'First Name', "rules" => "required"],
+                "txtlastname"       => ['label' => 'Make', "rules" => "required"],
+                "txtemail"          => ['label' => 'Email id', "rules" => "required|is_unique[tbl_user.username]"],
+                "txtpassword"       => ['label' => 'Password', "rules" => "required"],
                 "txtrepeatpassword" => ['label' => 'Repeat Password', "rules" => "required|matches[txtpassword]"],
-                "txtlicenseno" => ['label' => 'License No', "rules" => "required"],
-
-
+                "txtlicenseno"      => ['label' => 'License No', "rules" => "required"],
             ];
             if (!$this->validate($rules)) {
-                // $validation = \Config\Services::validation();
-                // $this->session->set("success_alert_update", "<script>swal('".$validation->geterror('txtfirstname')."', {icon: 'warning',});</script>");
-                // $this->session->set("success_alert_update", "<script>swal('".$validation->geterror('txtlastname')."', {icon: 'warning',});</script>");
-                $this->session->set("success_alert_update", "<script>swal('" . $this->validator->geterror('txtemail') . "', {icon: 'warning',});</script>");
-                // $this->session->set("success_alert_update", "<script>swal('".$validation->geterror('txtpassword')."', {icon: 'warning',});</script>");
-                $this->session->set("success_repeate_pass", "<script>swal('" . $this->validator->geterror('txtrepeatpassword') . "', {icon: 'warning',});</script>");
-                $this->session->set("success_alert_update", "<script>swal('" . $this->validator->geterror('txtlicenseno') . "', {icon: 'warning',});</script>");
-                //return redirect()->to(site_url() . '/dashboard/newdriver');
-                $this->newdriver();
+                $data['validation'] = $this->validator;
+                $this->header();
+                echo view('newdriver', $data);
+                $this->footer();
             } else {
 
 
@@ -134,7 +128,7 @@ class Dashboard extends BaseController
                     "dob"                   => trim($this->request->getPost('txtdob')),
                     'license_expiry_date'   => trim($this->request->getPost('dtexpdate')),
                     //   'password'=>$password,
-                    'driver_license_no' => ucwords(trim($this->request->getPost('txtlicenseno'), " ")),
+                    'driver_license_no'     => ucwords(trim($this->request->getPost('txtlicenseno'), " ")),
                     'type_id' => 0
                 );
 
@@ -167,9 +161,8 @@ class Dashboard extends BaseController
                 'type_id' => 0
             );
 
-        //  echo $this->request->getPost('driverid');die;
             $res=$this->usermodel->where($condition)->set('account_status',0)->update();
-            // $res=$this->usermodel->update(array('account_status'=>0),$condition);
+         
             if ( $res ) {
 
                 echo true;
@@ -188,16 +181,8 @@ class Dashboard extends BaseController
     {
 
         if ($editid !== "") {
-            $driver_details['car_list'] = $this->db->table('tbl_car')->select('car_id,car_noplate')->get()->getResultArray();
-
-            $driver_details['driver_details'] = $this->usermodel->where('user_id', $editid)->findall();
-
-            // $driver_details['car_details'] = $this->db->table('tbl_car_transaction')
-            // ->select('*')
-            // ->where('driver_id', $editid)
-            // ->orderBy('car_id', 'desc')
-            // ->limit(1)
-            // ->get()->getRowArray();
+            $driver_details['car_list']         = $this->db->table('tbl_car')->select('car_id,car_noplate')->get()->getResultArray();
+            $driver_details['driver_details']   = $this->usermodel->where('user_id', $editid)->findall();
 
             $this->header();
             echo view('editdriverdetails', $driver_details);
@@ -213,57 +198,59 @@ class Dashboard extends BaseController
     public function editdetails()
     {
         helper(['form', 'url']);
-        // $rules = [
-        //     "txtfirstname" => ['label' => 'First Name',"rules"=>"required|alpha_numeric_space"],
-        //     "txtlastname" => ['label' => 'Make',"rules"=>"required"],
-        //     "txtemail" => ['label' => 'Email id',"rules"=>"required|is_unique[tbl_user.username]"],
-        //     // "txtpassword" => ['label' => 'Password',"rules"=>"required"],
-        //     // "txtrepeatpassword" => ['label' => 'Repeat Password',"rules"=>"required|matches[txtpassword]"],
-        //     "txtlicenseno" => ['label' => 'License No',"rules"=>"required"],
+        if (!empty($this->request->getPost('txtpassword'))) 
+        {
+            $rules = [
+                "txtfirstname"      => ['label' => 'First Name',"rules"=>"required|alpha_numeric_space"],
+                "txtlastname"       => ['label' => 'Make',"rules"=>"required"],
+                "txtpassword"       => ['label' => 'Password',"rules"=>"required"],
+                "txtrepeatpassword" => ['label' => 'Repeat Password',"rules"=>"required|matches[txtpassword]"],
+                "txtlicenseno"      => ['label' => 'License No',"rules"=>"required"],
+    
+            ];
+        } else {
+            $rules = [
+                "txtfirstname"      => ['label' => 'First Name',"rules"=>"required|alpha_numeric_space"],
+                "txtlastname"       => ['label' => 'Make',"rules"=>"required"],
+                "txtlicenseno"      => ['label' => 'License No',"rules"=>"required"],
+            ];
+        }
+        if (!$this->validate($rules)) {
+            $editid=$this->request->getpost('edit_id');
+            $driver_details['driver_details'] = $this->usermodel->where('user_id', $editid)->findall();
 
-        // ];
-        // if (!$this->validate($rules)) {
-        //     $validation = \Config\Services::validation();
-        //     $this->session->set("success_alert_update", "<script>swal('".$validation->geterror('txtfirstname')."', {icon: 'warning',});</script>");
-        //     $this->session->set("success_alert_update", "<script>swal('".$validation->geterror('txtlastname')."', {icon: 'warning',});</script>");
-        // //    $this->session->set("success_alert_update", "<script>swal('".$validation->geterror('txtemail')."', {icon: 'warning',});</script>");
-        //     // $this->session->set("success_alert_update", "<script>swal('".$validation->geterror('txtpassword')."', {icon: 'warning',});</script>");
-        //     // $this->session->set("success_alert_update", "<script>swal('".$validation->geterror('txtrepeatpassword')."', {icon: 'warning',});</script>");
-        //     $this->session->set("success_alert_update", "<script>swal('".$validation->geterror('txtlicenseno')."', {icon: 'warning',});</script>");
-        //     //return redirect()->to(site_url() . '/dashboard/newdriver');
-        //      $this->adddriver($this->request->getpost('edit_id'));
-        // }tbl_car_transaction
-        // else{
+            $this->header();
+
+            echo view('editdriverdetails', $driver_details);
+
+            $this->footer();
+        }
+        else{
 
         if ($this->request->getPost() != "") {
 
-            $password = "";
-
-            if (empty($this->request->getPost('repeatpassword'))) {
-
-                $password = $this->request->getPost('hiddenpassword');
+            if (empty($this->request->getPost('txtpassword'))) 
+            {
+                $update_driverdetails = array(
+                    'first_name'            => ucwords(trim($this->request->getPost('txtfirstname'), " ")),
+                    'last_name'             => ucwords(trim($this->request->getPost('txtlastname'), " ")),
+                    'username'              => trim($this->request->getPost('txtemail'), " "),
+                    "dob"                   => trim($this->request->getPost('txtdob')),
+                    'license_expiry_date'   => trim($this->request->getPost('dtexpdate')),
+                    'driver_license_no'     => ucwords(trim($this->request->getPost('txtlicenseno'), " "))
+                    );
             } else {
-
-                $password = md5($this->request->getPost('repeatpassword'));
+                $password=trim($this->request->getPost('txtpassword'));
+                $update_driverdetails = array(
+                    'first_name'            => ucwords(trim($this->request->getPost('txtfirstname'), " ")),
+                    'last_name'             => ucwords(trim($this->request->getPost('txtlastname'), " ")),
+                    'username'              => trim($this->request->getPost('txtemail'), " "),
+                    "dob"                   => trim($this->request->getPost('txtdob')),
+                    'license_expiry_date'   => trim($this->request->getPost('dtexpdate')),
+                    'password'              => $password,
+                    'driver_license_no'     => ucwords(trim($this->request->getPost('txtlicenseno'), " "))
+                    );
             }
-
-            $update_driverdetails = array(
-
-                'first_name' => ucwords(trim($this->request->getPost('txtfirstname'), " ")),
-
-                'last_name' => ucwords(trim($this->request->getPost('txtlastname'), " ")),
-
-                'username' => trim($this->request->getPost('txtemail'), " "),
-                "dob" => trim($this->request->getPost('txtdob')),
-                'license_expiry_date' => trim($this->request->getPost('dtexpdate')),
-
-                'password' => $password,
-
-                'driver_license_no' => ucwords(trim($this->request->getPost('txtlicenseno'), " "))
-
-
-            );
-
             if ($this->usermodel->update(array('user_id' => $this->request->getpost('edit_id')), $update_driverdetails)) {
                 $this->session->set("success_alert_update", "<script>swal('Driver has been Updated!', {icon: 'success',});</script>");
                 return redirect()->to(base_url() . '/dashboard/listdriver');
@@ -274,7 +261,7 @@ class Dashboard extends BaseController
                 return redirect()->to('/dashboard/listdriver');
             }
         }
-        //  }
+        }
 
 
     }
@@ -327,18 +314,19 @@ class Dashboard extends BaseController
 
 
                 $rules = [
-                    "txtnumberplate" => ['label' => 'Number Plate', "rules" => "required|is_unique[tbl_car.car_noplate]"],
-                    "txtmake" => ['label' => 'Make', "rules" => "required"],
-                    "txtmodel" => ['label' => 'Car Model', "rules" => "required"],
-                    "txtmodelyear" => ['label' => 'Car Model year', "rules" => "required"],
-                    "txtcolor" => ['label' => 'Color', "rules" => "required"],
-                    "txtrentalcompany" => ['label' => 'Rental Company', "rules" => "required"],
-                    "txtreturndate" => ['label' => 'Return Date', "rules" => "required"],
+                    
+                    "txtnumberplate"    => ['label' => 'Number Plate', "rules" => "required|is_unique[tbl_car.car_noplate]"],
+                    "txtmake"           => ['label' => 'Make', "rules" => "required"],
+                    "txtmodel"          => ['label' => 'Car Model', "rules" => "required"],
+                    "txtmodelyear"      => ['label' => 'Car Model year', "rules" => "required"],
+                    "txtcolor"          => ['label' => 'Color', "rules" => "required"],
+                    "txtrentalcompany"  => ['label' => 'Rental Company', "rules" => "required"],
+                    "txtreturndate"     => ['label' => 'Return Date', "rules" => "required"],
 
-                    "txtcountrycode" => ['label' => 'Country Code', "rules" => "required"],
+                    "txtcountrycode"    => ['label' => 'Country Code', "rules" => "required"],
                     "txttrackingnumber" => ['label' => 'GPS Tracking Number', "rules" => "required|is_unique[tbl_car.gpstrackingnumber]"],
 
-                    "txtmileage" => ['label' => 'Mileage', "rules" => "required|numeric"]
+                    "txtmileage"        => ['label' => 'Mileage', "rules" => "required|numeric"]
                 ];
                 $car_id = $this->request->getpost('hiddencarid');
                 $val = $this->db->table('tbl_car')->where('car_id', $car_id)->get()->getRowArray();
@@ -355,31 +343,34 @@ class Dashboard extends BaseController
 
 
                 if (!$this->validate($rules)) {
-                    $this->session->set("success_alert_update", "<script>swal('" . $this->validator->geterror('txtnumberplate') . "', {icon: 'warning',});</script>");
+                    $editid=$this->request->getpost('hiddencarid');
+                    $cardetails['car_details'] = $this->carmodel->where('car_id', $editid)->findall();
+                    $cardetails['validation'] = $this->validator;
+                    $this->header();
 
-                    $this->session->set("success_alert_update", "<script>swal('" . $this->validator->geterror('txttrackingnumber') . "', {icon: 'warning',});</script>");
+                    echo view('editcar', $cardetails);
 
-                    $this->editcar($car_id);
+                    $this->footer();
                 } else {
                     $update_cardetails = array(
 
-                        'car_noplate' => strtoupper(trim($this->request->getPost('txtnumberplate'), " ")),
+                        'car_noplate'   => strtoupper(trim($this->request->getPost('txtnumberplate'), " ")),
 
-                        'make' => strtoupper(trim($this->request->getPost('txtmake'), " ")),
+                        'make'          => strtoupper(trim($this->request->getPost('txtmake'), " ")),
 
-                        'model' => trim($this->request->getPost('txtmodel'), " "),
+                        'model'         => trim($this->request->getPost('txtmodel'), " "),
 
-                        'year' => $this->request->getPost("txtmodelyear"),
+                        'year'          => $this->request->getPost("txtmodelyear"),
 
-                        'color' => ucwords(trim($this->request->getPost('txtcolor'), " ")),
+                        'color'         => ucwords(trim($this->request->getPost('txtcolor'), " ")),
 
                         'rentalcompany' => ucwords(trim($this->request->getPost('txtrentalcompany'), "")),
 
-                        'returndate' => $this->request->getPost('txtreturndate'),
-                        'countrycode' => trim($this->request->getPost('txtcountrycode')),
+                        'returndate'    => $this->request->getPost('txtreturndate'),
+                        'countrycode'   => trim($this->request->getPost('txtcountrycode')),
                         'gpstrackingnumber' => trim($this->request->getPost('txttrackingnumber')),
 
-                        'car_mileage' => trim($this->request->getPost('txtmileage'))
+                        'car_mileage'   => trim($this->request->getPost('txtmileage'))
 
                     );
 
@@ -430,51 +421,48 @@ class Dashboard extends BaseController
             if ($this->request->getPost() !== "") {
 
                 $rules = [
-                    "txtnumberplate" => ['label' => 'Number Plate', "rules" => "required|is_unique[tbl_car.car_noplate]"],
-                    "txtmake" => ['label' => 'Make', "rules" => "required"],
-                    "txtmodel" => ['label' => 'Car Model', "rules" => "required"],
-                    "txtmodelyear" => ['label' => 'Car Model year', "rules" => "required"],
-                    "txtcolor" => ['label' => 'Color', "rules" => "required"],
-                    "txtrentalcompany" => ['label' => 'Rental Company', "rules" => "required"],
+                    "txtnumberplate"        => ['label' => 'Number Plate', "rules" => "required|is_unique[tbl_car.car_noplate]"],
+                    "txtmake"               => ['label' => 'Make', "rules" => "required"],
+                    "txtmodel"              => ['label' => 'Car Model', "rules" => "required"],
+                    "txtmodelyear"          => ['label' => 'Car Model year', "rules" => "required"],
+                    "txtcolor"              => ['label' => 'Color', "rules" => "required"],
+                    "txtrentalcompany"      => ['label' => 'Rental Company', "rules" => "required"],
 
                     // "drpfueltype" => ['label' => 'Fuel Type',"rules"=>"required"],
-                    "txtcountrycode" => ['label' => 'Country Code', "rules" => "required"],
-                    "txttrackingnumber" => ['label' => 'GPS Tracking Number', "rules" => "required|is_unique[tbl_car.gpstrackingnumber]"],
+                    "txtcountrycode"        => ['label' => 'Country Code', "rules" => "required"],
+                    "txttrackingnumber"     => ['label' => 'GPS Tracking Number', "rules" => "required|is_unique[tbl_car.gpstrackingnumber]"],
 
-                    "txtmileage" => ['label' => 'Mileage', "rules" => "required|numeric"]
+                    "txtmileage"            => ['label' => 'Mileage', "rules" => "required|numeric"]
                 ];
 
                 //print_r($this->request->getPost());tbl_car_transaction
 
                 if (!$this->validate($rules)) {
 
-                    $this->session->set("success_alert_update", "<script>swal('" . $this->validator->geterror('success_alert_update') . "', {icon: 'warning',});</script>");
-                    $this->session->set("txttrackingnumber", "<script>swal('" . $this->validator->geterror('txttrackingnumber') . "', {icon: 'warning',});</script>");
-                    $this->session->set("txtmake", "<script>swal('" . $this->validator->geterror('txtmake') . "', {icon: 'warning',});</script>");
-                    $this->session->set("txtmodelyear", "<script>swal('" . $this->validator->geterror('txtmodelyear') . "', {icon: 'warning',});</script>");
-
-                    $this->session->set("txtmodel", "<script>swal('" . $this->validator->geterror('txtmodel') . "', {icon: 'warning',});</script>");
-                    $this->session->set("txtcolor", "<script>swal('" . $this->validator->geterror('txtcolor') . "', {icon: 'warning',});</script>");
-
-                    $this->session->set("txtrentalcompany", "<script>swal('" . $this->validator->geterror('txtrentalcompany') . "', {icon: 'warning',});</script>");
-                    $this->session->set("txtcountrycode", "<script>swal('" . $this->validator->geterror('txtcountrycode') . "', {icon: 'warning',});</script>");
-                    $this->session->set("txtmileage", "<script>swal('" . $this->validator->geterror('txtmileage') . "', {icon: 'warning',});</script>");
-
-                    return redirect()->to(site_url() . '/dashboard/newcar');
+                    $this->header();
+        
+                    $data['validation'] = $this->validator;
+                    echo view(
+                        'addcar',
+                        $data
+                    );
+    
+                    $this->footer();
+                    die;
                 } else {
                     $car_details = array(
 
-                        'car_noplate' => strtoupper(trim($this->request->getPost('txtnumberplate'), " ")),
-                        'make' => strtoupper(trim($this->request->getPost('txtmake'), " ")),
-                        'model' => trim($this->request->getPost('txtmodel'), " "),
-                        'year' => $this->request->getPost("txtmodelyear"),
-                        'color' => ucwords(trim($this->request->getPost('txtcolor'), " ")),
-                        'rentalcompany' => ucwords(trim($this->request->getPost('txtrentalcompany'), "")),
-                        'returndate' => $this->request->getPost('txtreturndate'),
+                        'car_noplate'       => strtoupper(trim($this->request->getPost('txtnumberplate'), " ")),
+                        'make'              => strtoupper(trim($this->request->getPost('txtmake'), " ")),
+                        'model'             => trim($this->request->getPost('txtmodel'), " "),
+                        'year'              => $this->request->getPost("txtmodelyear"),
+                        'color'             => ucwords(trim($this->request->getPost('txtcolor'), " ")),
+                        'rentalcompany'     => ucwords(trim($this->request->getPost('txtrentalcompany'), "")),
+                        'returndate'        => $this->request->getPost('txtreturndate'),
                         // 'fuel_type' => $this->request->getPost('drpfueltype'),
-                        'countrycode' => trim($this->request->getPost('txtcountrycode')),
+                        'countrycode'       => trim($this->request->getPost('txtcountrycode')),
                         'gpstrackingnumber' => trim($this->request->getPost('txttrackingnumber')),
-                        'car_mileage' => trim($this->request->getPost('txtmileage'))
+                        'car_mileage'       => trim($this->request->getPost('txtmileage'))
                     );
                 }
 
@@ -506,7 +494,6 @@ class Dashboard extends BaseController
         if(!isset($filter_start_date) && !isset($filter_end_date)) 
         {
             $today=date("Y-m-d");
-            ECHO $today;
             $condition=array(
                 'start_timestamp >='=>$today
             );
@@ -710,17 +697,17 @@ class Dashboard extends BaseController
                 $accident_status=1;
             }
             $data = array(
-                'destination_id'    =>$this->request->getPost('station'),
+                'destination_id'    => $this->request->getPost('station'),
 
-                'start_kilometer' => $this->request->getPost('txtstartkm'),
+                'start_kilometer'   => $this->request->getPost('txtstartkm'),
 
-                'end_kilometer' => $this->request->getPost('txtendtkm'),
+                'end_kilometer'     => $this->request->getPost('txtendtkm'),
 
-                'start_fuel_level' => $this->request->getPost('txtstartfuel'),
+                'start_fuel_level'  => $this->request->getPost('txtstartfuel'),
 
-                'end_fuel_level' => $this->request->getPost('txtendfuel'),
+                'end_fuel_level'    => $this->request->getPost('txtendfuel'),
 
-                'accident_status' =>  $accident_status
+                'accident_status'   =>  $accident_status
 
             );
             $res=$this->drivingmodel->set($data)->where('day_id',$id)->update();
@@ -744,10 +731,10 @@ class Dashboard extends BaseController
      */
     public function view_tanken()
     {
-        $filter_start_date=$this->request->getVar('start_date');
-        $filter_end_date=$this->request->getVar('end_date');
-        $car_id=$this->request->getVar('sel_car');
-        $user_id=$this->request->getVar('sel_driver');
+        $filter_start_date  = $this->request->getVar('start_date');
+        $filter_end_date    = $this->request->getVar('end_date');
+        $car_id             = $this->request->getVar('sel_car');
+        $user_id            = $this->request->getVar('sel_driver');
 
         //filter dates
         if(!isset($filter_start_date) && !isset($filter_end_date)) 
@@ -764,8 +751,8 @@ class Dashboard extends BaseController
             $date1 = str_replace('-', '/', $filter_end_date);
             $tomorrow = date('Y-m-d',strtotime($date1 . "+1 days"));
             $condition=array(
-                'fuel.created>=' => $filter_start_date,
-                'fuel.created <=' => $tomorrow
+                'fuel.created>='    => $filter_start_date,
+                'fuel.created <='   => $tomorrow
             );
         }
         elseif(isset($filter_start_date))
@@ -788,17 +775,10 @@ class Dashboard extends BaseController
 
             $data['days'] = $this->fuelmodel->select(
                 'fuel.*,
-
                 '
             )
             ->where($condition)
             ->get()->getResultArray();
-
-        
-          
-        // echo "<pre>";
-        // print_r($data['days']);
-        // echo "</pre>";die;
 
         $data['db'] = $this->db;
 
@@ -836,7 +816,6 @@ class Dashboard extends BaseController
         '
         )
        ->where('fuel_id', $fuel_id)
-    //    ->join('driving_day','driving_day.day_id=fuel.day_id')
        ->get()->getResultArray();
 
  
@@ -954,17 +933,17 @@ class Dashboard extends BaseController
 
 
             $data = array(
-                'kilometer'    =>$this->request->getPost('txttkm'),
+                'kilometer'             => $this->request->getPost('txttkm'),
 
-                'zipcode' => $this->request->getPost('zipcode'),
+                'zipcode'               => $this->request->getPost('zipcode'),
 
-                'fuel_amount' => $this->request->getPost('fuelamt'),
+                'fuel_amount'           => $this->request->getPost('fuelamt'),
 
-                'amount' => $this->request->getPost('amount'),
+                'amount'                => $this->request->getPost('amount'),
 
-                'oil_status' =>  $oil_status,
+                'oil_status'            => $oil_status,
 
-                'blue_tanked_status' =>  $blue_tanked_status,
+                'blue_tanked_status'    => $blue_tanked_status,
             );
             $res=$this->fuelmodel->set($data)->where('fuel_id',$id)->update();
 
@@ -997,6 +976,122 @@ class Dashboard extends BaseController
                 echo false;
             }
         }
+    }
+
+    /**
+     * Add station
+     */
+    public function add_station()
+    {
+        if ($this->request->getPost('name')) {
+            $data = array(
+                'name' => $this->request->getPost('name')
+            );
+            if ($this->stationmodel->insert($data)) {
+                echo true;
+            } else {
+                echo false;
+            }
+        }
+    }
+
+
+    /**
+     * Delete fuel
+     */
+    public function delete_station()
+    {
+        if ($this->request->getPost('id')) {
+            $delete = array(
+                'destination_id' => $this->request->getPost('id')
+            );
+            if ($this->stationmodel->where($delete)->delete()) {
+                echo true;
+            } else {
+                echo false;
+            }
+        }
+    }
+
+
+    /**
+     * Edit station form
+     */
+    public function edit_station($editid)
+    {
+        if ($editid !== "") {
+
+            $data['station'] = $this->stationmodel->where('destination_id', $editid)->get()->getRowArray();
+
+            $this->header();
+
+            echo view('editstation', $data);
+
+            $this->footer();
+        }
+    }
+
+      /**
+     * Edit station details
+     */
+    public function update_station()
+    {
+        helper(['form', 'url']);
+
+
+        if ($this->request->getPost() != "") {
+
+            $valudation = array(
+                'txtstation' => array(
+                    "label" => "Station",
+                    "rules" => 'required|alpha'
+                ),
+            );
+            $input = $this->validate($valudation);
+
+            $id = $this->request->getPost('destination_id');
+
+           
+            if (!$input) {
+                
+                $this->header();
+          
+                $data['station'] = $this->stationmodel->where('destination_id', $id)->get()->getRowArray();
+         
+                $data['validation'] = $this->validator;
+                echo view(
+                    'editstation',
+                    $data
+                );
+
+                $this->footer();
+                die;
+            }
+
+
+
+            $destination_id=trim($this->request->getPost('destination_id'));
+            $name=trim($this->request->getPost('txtstation'));
+    
+            $data=array(
+                
+                'name'            => $name
+            );
+            $res=$this->stationmodel->set($data)->where( 'destination_id' , $destination_id )->update();
+            if($res)
+            {
+                $this->session->set("success_alert_update", "<script>swal('Station has been Updated!', {icon: 'success',});</script>");
+                return redirect()->to(base_url() . '/dashboard');
+            }
+            else
+            {
+
+                $this->session->set("success_alert_update", "<script>swal('Something went wrong!', {icon: 'error',});</script>");
+
+                return redirect()->to('/dashboard');
+            }
+        }
+
     }
     //========================================================================================================
 }
